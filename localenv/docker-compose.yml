@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - glances
+    networks:
+      - app-network
+    env_file:
+      - ./.env
+
+  glances:
+    image: nicolargo/glances:latest-full
+    command: glances -w
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /dev:/dev
+      - /sys:/sys
+      - /proc:/proc
+    networks:
+      - app-network
+
+  localstack:
+    image: localstack/localstack
+    environment:
+      - SERVICES=s3,sns,sqs
+      - EDGE_PORT=4566
+      - DATA_DIR=/var/lib/localstack
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./localstack-data:/var/lib/localstack
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

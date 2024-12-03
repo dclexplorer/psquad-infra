@@ -1,0 +1,4 @@
+config:
+  aws:region: us-east-1
+  psquad-asset-process-infra:deployToLocalstack: "true"
+encryptionsalt: v1:NB4i0luvsNU=:v1:SDI6+S7oCaZfHpFr:9fAdWstHOAJjaJKElvr9gDc0goFoUQ==

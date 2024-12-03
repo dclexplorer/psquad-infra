@@ -1,0 +1,17 @@
+{
+    "name": "psquad-asset-process-infra",
+    "main": "index.ts",
+    "scripts": {
+      "build": "tsc",
+      "deploy": "pulumi up",
+      "destroy": "pulumi destroy",
+      "preview": "pulumi preview"
+    },
+    "dependencies": {
+      "@pulumi/aws": "^5.32.0",
+      "@pulumi/pulumi": "^3.80.0"
+    },
+    "devDependencies": {
+      "typescript": "^4.0.0"
+    }
+  }
