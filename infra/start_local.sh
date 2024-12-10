@@ -1,6 +1,12 @@
 #/bin/bash
 export PATH=$PATH:/home/dcl/.pulumi/bin/:/home/dcl/.nvm/versions/node/v22.11.0/bin/
-source .env
+
+while IFS='=' read -r key value
+do
+  if [[ $key != "" ]]; then
+    export "$key=$value"
+  fi
+done < .env
 
 STACK_NAME="dev"
 

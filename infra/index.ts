@@ -37,36 +37,36 @@ if (deployToLocalstack) {
     });
 }
 
-// S3 Buckets
-const buckets = [
-    "optimized-assets",
-    "crdts",
-    "glb",
-    "minimap",
-    "impostors",
-];
+// only deploy s3 buckets on localstack for now...
+if (deployToLocalstack) {
+    // S3 Buckets
+    const buckets = [
+        "optimized-assets",
+        "crdts",
+        "glb",
+        "minimap",
+        "impostors",
+    ];
 
-const bucketOutputs: { [key: string]: pulumi.Output<string> } = {};
+    const bucketOutputs: { [key: string]: pulumi.Output<string> } = {};
 
-buckets.forEach(bucketName => {
-    const bucket = new aws.s3.Bucket(bucketName, {
-        bucket: bucketName,
-        acl: "public-read",
-    }, { provider });
+    buckets.forEach(bucketName => {
+        const bucket = new aws.s3.Bucket(bucketName, {
+            bucket: bucketName,
+            acl: "public-read",
+        }, { provider });
 
-    new aws.s3.BucketPublicAccessBlock(`${bucketName}-public-access-block`, {
-        bucket: bucket.id,
-        blockPublicAcls: false,
-        blockPublicPolicy: false,
-        ignorePublicAcls: false,
-        restrictPublicBuckets: false,
-    }, { provider });
+        new aws.s3.BucketPublicAccessBlock(`${bucketName}-public-access-block`, {
+            bucket: bucket.id,
+            blockPublicAcls: false,
+            blockPublicPolicy: false,
+            ignorePublicAcls: false,
+            restrictPublicBuckets: false,
+        }, { provider });
 
-    bucketOutputs[bucketName] = bucket.bucket;
-});
-
-// Export the bucket names
-export const bucketNames = bucketOutputs;
+        bucketOutputs[bucketName] = bucket.bucket;
+    });
+}
 
 // SNS Topics
 const sceneEntitiesSnsTopic = new aws.sns.Topic("SceneEntitiesSNS", {

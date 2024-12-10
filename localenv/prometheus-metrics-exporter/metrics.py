@@ -32,8 +32,8 @@ def fetch_metrics():
             end_time = datetime.utcnow()
             start_time = end_time - timedelta(minutes=1)  # Fetch last minute
             
-            # Fetch metrics for the queue
-            response = cloudwatch.get_metric_statistics(
+            # Fetch metrics for ApproximateNumberOfMessagesVisible
+            visible_response = cloudwatch.get_metric_statistics(
                 Namespace='AWS/SQS',
                 MetricName='ApproximateNumberOfMessagesVisible',
                 Dimensions=[
@@ -45,12 +45,39 @@ def fetch_metrics():
                 Statistics=['Average']
             )
             
-            # Extract the most recent data point
-            if response.get('Datapoints'):
-                latest_datapoint = max(response['Datapoints'], key=lambda x: x['Timestamp'])
-                value = latest_datapoint['Average']
-                # Prometheus format: name{label1="value1"} value
-                metrics.append(f'sqs_approximate_number_of_messages_visible{{queue="{queue_name}"}} {value}')
+            # Fetch metrics for ApproximateNumberOfMessagesNotVisible
+            not_visible_response = cloudwatch.get_metric_statistics(
+                Namespace='AWS/SQS',
+                MetricName='ApproximateNumberOfMessagesNotVisible',
+                Dimensions=[
+                    {'Name': 'QueueName', 'Value': queue_name}
+                ],
+                StartTime=start_time,
+                EndTime=end_time,
+                Period=60,
+                Statistics=['Average']
+            )
+            
+            # Initialize values for visible and not visible messages
+            visible_value = 0
+            not_visible_value = 0
+            
+            # Extract the most recent data point for visible messages
+            if visible_response.get('Datapoints'):
+                latest_visible_datapoint = max(visible_response['Datapoints'], key=lambda x: x['Timestamp'])
+                visible_value = latest_visible_datapoint['Average']
+                metrics.append(f'sqs_approximate_number_of_messages_visible{{queue="{queue_name}"}} {visible_value}')
+            
+            # Extract the most recent data point for not visible messages
+            if not_visible_response.get('Datapoints'):
+                latest_not_visible_datapoint = max(not_visible_response['Datapoints'], key=lambda x: x['Timestamp'])
+                not_visible_value = latest_not_visible_datapoint['Average']
+                metrics.append(f'sqs_approximate_number_of_messages_not_visible{{queue="{queue_name}"}} {not_visible_value}')
+            
+            # Calculate the total number of messages
+            total_messages = visible_value + not_visible_value
+            metrics.append(f'sqs_total_approximate_number_of_messages{{queue="{queue_name}"}} {total_messages}')
+                
     except Exception as e:
         metrics.append(f"# Error fetching metrics: {str(e)}")
     return metrics
