@@ -73,6 +73,10 @@ const sceneEntitiesSnsTopic = new aws.sns.Topic("SceneEntitiesSNS", {
     name: "SceneEntitiesSNS",
 }, { provider });
 
+const prioritySceneEntitiesSnsTopic = new aws.sns.Topic("PrioritySceneEntitiesSNS", {
+    name: "PrioritySceneEntitiesSNS",
+}, { provider });
+
 const wearableEmoteEntitiesSnsTopic = new aws.sns.Topic("WearableEmoteEntitiesSNS", {
     name: "WearableEmoteEntitiesSNS",
 }, { provider });
@@ -94,6 +98,11 @@ const sceneEntitiesSqsForMinimap = new aws.sqs.Queue("SceneEntitiesForMinimapSQS
 
 const sceneEntitiesSqsForAssetOptimization = new aws.sqs.Queue("SceneEntitiesForAssetOptimizationSQS", {
     name: "SceneEntitiesForAssetOptimizationSQS",
+    visibilityTimeoutSeconds: 30,
+}, { provider });
+
+const prioritySceneEntitiesSqsForAssetOptimization = new aws.sqs.Queue("PrioritySceneEntitiesForAssetOptimizationSQS", {
+    name: "PrioritySceneEntitiesForAssetOptimizationSQS",
     visibilityTimeoutSeconds: 30,
 }, { provider });
 
@@ -136,6 +145,13 @@ new aws.sns.TopicSubscription("SceneEntitiesSQSForAssetOptimizationSubscription"
     topic: sceneEntitiesSnsTopic.arn,
     protocol: "sqs",
     endpoint: sceneEntitiesSqsForAssetOptimization.arn,
+    rawMessageDelivery: true,
+}, { provider });
+
+new aws.sns.TopicSubscription("PrioritySceneEntitiesSQSForAssetOptimizationSubscription", {
+    topic: prioritySceneEntitiesSnsTopic.arn,
+    protocol: "sqs",
+    endpoint: prioritySceneEntitiesSqsForAssetOptimization.arn,
     rawMessageDelivery: true,
 }, { provider });
 
@@ -195,6 +211,7 @@ function grantSqsPermission(queue: aws.sqs.Queue, topicArn: pulumi.Output<string
 grantSqsPermission(sceneEntitiesSqsForCRDT, sceneEntitiesSnsTopic.arn, "SceneEntitiesSQSForCRDT");
 grantSqsPermission(sceneEntitiesSqsForMinimap, sceneEntitiesSnsTopic.arn, "SceneEntitiesSQSForMinimap");
 grantSqsPermission(sceneEntitiesSqsForAssetOptimization, sceneEntitiesSnsTopic.arn, "SceneEntitiesSQSForAssetOptimization");
+grantSqsPermission(prioritySceneEntitiesSqsForAssetOptimization, prioritySceneEntitiesSnsTopic.arn, "PrioritySceneEntitiesSQSForAssetOptimization");
 grantSqsPermission(wearableEmotesSqs, wearableEmoteEntitiesSnsTopic.arn, "WearableEmotesEntitiesSQS");
 grantSqsPermission(crdtSqsForExportScenes, crdtSnsTopic.arn, "CRDTSQSForExportScenes");
 grantSqsPermission(crdtSqsForImpostors, crdtSnsTopic.arn, "CRDTSQSForImpostors");

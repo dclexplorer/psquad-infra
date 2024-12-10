@@ -26,7 +26,7 @@ services:
   localstack:
     image: localstack/localstack
     environment:
-      - SERVICES=s3,sns,sqs
+      - SERVICES=s3,sns,sqs,cloudwatch,sts
       - EDGE_PORT=4566
       - DATA_DIR=/var/lib/localstack
     ports:
@@ -36,6 +36,48 @@ services:
     networks:
       - app-network
 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+
+  prometheus-metrics-exporter:
+    build: ./prometheus-metrics-exporter
+    volumes:
+      - ./prometheus-metrics-exporter/metrics.py:/app/metrics.py
+    ports:
+      - "7670:7670"
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000" # Internal port is now 31337
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+      - ./grafana.ini:/etc/grafana/grafana.ini # Mount custom config
+    environment:
+      - GF_SECURITY_ADMIN_USER=${BASIC_AUTH_USERNAME}
+      - GF_SECURITY_ADMIN_PASSWORD=${BASIC_AUTH_PASSWORD}
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    depends_on:
+      - prometheus
+    networks:
+      - app-network
+    env_file:
+      - ./.env
+
+
+
 networks:
   app-network:
     driver: bridge
+    name: app-network
+
+volumes:
+  grafana-data:

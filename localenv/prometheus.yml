@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "prometheus-metrics-exporter:7670"
+    static_configs:
+      - targets: ["prometheus-metrics-exporter:7670"]

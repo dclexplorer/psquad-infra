@@ -1,7 +1,6 @@
 #/bin/bash
 export PATH=$PATH:/home/dcl/.pulumi/bin/:/home/dcl/.nvm/versions/node/v22.11.0/bin/
-export PULUMI_ACCESS_TOKEN=pul-4fbfcf43287d77c8f91e5c420469d96d25129ea4
-export PULUMI_CONFIG_PASSPHRASE=decentraland2024
+source .env
 
 STACK_NAME="dev"
 
