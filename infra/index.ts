@@ -5,6 +5,8 @@ import * as aws from "@pulumi/aws";
 const config = new pulumi.Config();
 const deployToLocalstack = config.getBoolean("deployToLocalstack") || false;
 
+console.log("deployToLocalstack: ", deployToLocalstack)
+
 // Set the AWS region
 const awsRegion: aws.Region = (config.get("aws:region") as aws.Region) || "us-east-1";
 
@@ -106,6 +108,16 @@ const prioritySceneEntitiesSqsForAssetOptimization = new aws.sqs.Queue("Priority
     visibilityTimeoutSeconds: 30,
 }, { provider });
 
+const sceneEntitiesSqsForImposters = new aws.sqs.Queue("SceneEntitiesForImpostersSQS", {
+    name: "SceneEntitiesForImpostersSQS",
+    visibilityTimeoutSeconds: 30,
+}, { provider });
+
+const prioritySceneEntitiesSqsForImposters = new aws.sqs.Queue("PrioritySceneEntitiesForImpostersSQS", {
+    name: "PrioritySceneEntitiesForImpostersSQS",
+    visibilityTimeoutSeconds: 30,
+}, { provider });
+
 const wearableEmotesSqs = new aws.sqs.Queue("WearableEmotesSQS", {
     name: "WearableEmotesSQS",
     visibilityTimeoutSeconds: 30,
@@ -152,6 +164,20 @@ new aws.sns.TopicSubscription("PrioritySceneEntitiesSQSForAssetOptimizationSubsc
     topic: prioritySceneEntitiesSnsTopic.arn,
     protocol: "sqs",
     endpoint: prioritySceneEntitiesSqsForAssetOptimization.arn,
+    rawMessageDelivery: true,
+}, { provider });
+
+new aws.sns.TopicSubscription("SceneEntitiesSQSForImpostersSubscription", {
+    topic: sceneEntitiesSnsTopic.arn,
+    protocol: "sqs",
+    endpoint: sceneEntitiesSqsForImposters.arn,
+    rawMessageDelivery: true,
+}, { provider });
+
+new aws.sns.TopicSubscription("PrioritySceneEntitiesSQSForImpostersSubscription", {
+    topic: prioritySceneEntitiesSnsTopic.arn,
+    protocol: "sqs",
+    endpoint: prioritySceneEntitiesSqsForImposters.arn,
     rawMessageDelivery: true,
 }, { provider });
 
@@ -212,6 +238,8 @@ grantSqsPermission(sceneEntitiesSqsForCRDT, sceneEntitiesSnsTopic.arn, "SceneEnt
 grantSqsPermission(sceneEntitiesSqsForMinimap, sceneEntitiesSnsTopic.arn, "SceneEntitiesSQSForMinimap");
 grantSqsPermission(sceneEntitiesSqsForAssetOptimization, sceneEntitiesSnsTopic.arn, "SceneEntitiesSQSForAssetOptimization");
 grantSqsPermission(prioritySceneEntitiesSqsForAssetOptimization, prioritySceneEntitiesSnsTopic.arn, "PrioritySceneEntitiesSQSForAssetOptimization");
+grantSqsPermission(sceneEntitiesSqsForImposters, sceneEntitiesSnsTopic.arn, "SceneEntitiesSQSForImposters");
+grantSqsPermission(prioritySceneEntitiesSqsForImposters, prioritySceneEntitiesSnsTopic.arn, "PrioritySceneEntitiesSQSForImposters");
 grantSqsPermission(wearableEmotesSqs, wearableEmoteEntitiesSnsTopic.arn, "WearableEmotesEntitiesSQS");
 grantSqsPermission(crdtSqsForExportScenes, crdtSnsTopic.arn, "CRDTSQSForExportScenes");
 grantSqsPermission(crdtSqsForImpostors, crdtSnsTopic.arn, "CRDTSQSForImpostors");

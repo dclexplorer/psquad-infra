@@ -35,7 +35,7 @@ jobs:
     - name: Deploy using Pulumi
       working-directory: infra
       run: |
-        pulumi stack init prod
+        pulumi stack select --create prod
         pulumi config set deployToLocalstack false --stack prod
         pulumi up --yes
       env:
